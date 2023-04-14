@@ -5,6 +5,7 @@ from einops.layers.torch import Rearrange
 import torch.nn.functional as F
 
 class LinearAttention(nn.Module):
+    # borrowed from https://github.com/lucidrains/med-seg-diff-pytorch
     def __init__(self, dim, heads=12, dim_head=64):
         super().__init__()
         self.scale = dim_head**-0.5
@@ -34,6 +35,7 @@ class LinearAttention(nn.Module):
 
     
 class ResidualStack(nn.Module):
+    # borrowed and modified from: https://github.com/airalcorn2/vqvae-pytorch
     def __init__(self, num_hiddens, num_residual_layers, num_residual_hiddens):
         super().__init__()
         # See Section 4.1 of "Neural Discrete Representation Learning".
@@ -73,6 +75,7 @@ class ResidualStack(nn.Module):
 
 
 class Encoder(nn.Module):
+    # borrowed and modified from: https://github.com/airalcorn2/vqvae-pytorch
     def __init__(
         self,
         in_channels=3,
@@ -127,6 +130,7 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
+    # borrowed and modified from: https://github.com/airalcorn2/vqvae-pytorch
     def __init__(
         self,
         embedding_dim=32,

@@ -26,13 +26,10 @@ class PairedDataset(Dataset):
         return len(self.input_files)
 
     def __getitem__(self, index):
-        """Get the images"""
         input_img = Image.open(self.input_files[index]).convert('RGB')
         target_img = Image.open(self.target_files[index]).convert('RGB')
 
         if self.transform:
-            # save random state so that if more elaborate transforms are used
-            # the same transform will be applied to both the mask and the img
             state = torch.get_rng_state()
             input_img = self.transform(input_img)
             target_img = self.transform(target_img)

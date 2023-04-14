@@ -68,6 +68,7 @@ def adaptive_instance_normalization(content_feat, style_feat):
 # small helper modules
 
 class Residual(nn.Module):
+    # borrowed from https://github.com/lucidrains/med-seg-diff-pytorch
     def __init__(self, fn):
         super().__init__()
         self.fn = fn
@@ -76,18 +77,21 @@ class Residual(nn.Module):
         return self.fn(x, *args, **kwargs) + x
 
 def Upsample(dim, dim_out = None):
+    # borrowed from https://github.com/lucidrains/med-seg-diff-pytorch
     return nn.Sequential(
         nn.Upsample(scale_factor = 2, mode = 'nearest'),
         nn.Conv2d(dim, default(dim_out, dim), 3, padding = 1)
     )
 
 def Downsample(dim, dim_out = None):
+    # borrowed from https://github.com/lucidrains/med-seg-diff-pytorch
     return nn.Sequential(
         Rearrange('b c (h p1) (w p2) -> b (c p1 p2) h w', p1 = 2, p2 = 2),
         nn.Conv2d(dim * 4, default(dim_out, dim), 1)
     )
 
 class LayerNorm(nn.Module):
+    # borrowed from https://github.com/lucidrains/med-seg-diff-pytorch
     def __init__(self, dim, bias = False):
         super().__init__()
         self.g = nn.Parameter(torch.ones(1, dim, 1, 1))
@@ -100,6 +104,7 @@ class LayerNorm(nn.Module):
         return (x - mean) * (var + eps).rsqrt() * self.g + default(self.b, 0)
 
 class SinusoidalPosEmb(nn.Module):
+    # borrowed from https://github.com/lucidrains/med-seg-diff-pytorch
     def __init__(self, dim):
         super().__init__()
         self.dim = dim
@@ -113,9 +118,8 @@ class SinusoidalPosEmb(nn.Module):
         emb = torch.cat((emb.sin(), emb.cos()), dim=-1)
         return emb
 
-# building block modules
-
 class Block(nn.Module):
+    # borrowed from https://github.com/lucidrains/med-seg-diff-pytorch
     def __init__(self, dim, dim_out, groups = 8):
         super().__init__()
         self.proj = nn.Conv2d(dim, dim_out, 3, padding = 1)
@@ -134,6 +138,7 @@ class Block(nn.Module):
         return x
 
 class ResnetBlock(nn.Module):
+    # borrowed from https://github.com/lucidrains/med-seg-diff-pytorch
     def __init__(self, dim, dim_out, *, time_emb_dim = None, groups = 8):
         super().__init__()
         self.mlp = nn.Sequential(
@@ -160,6 +165,7 @@ class ResnetBlock(nn.Module):
         return h + self.res_conv(x)
 
 def FeedForward(dim, mult = 4):
+    # borrowed from https://github.com/lucidrains/med-seg-diff-pytorch
     inner_dim = int(dim * mult)
     return nn.Sequential(
         LayerNorm(dim),
@@ -169,6 +175,7 @@ def FeedForward(dim, mult = 4):
     )
 
 class LinearAttention(nn.Module):
+    # borrowed from https://github.com/lucidrains/med-seg-diff-pytorch
     def __init__(self, dim, heads = 4, dim_head = 32):
         super().__init__()
         self.scale = dim_head ** -0.5
@@ -203,7 +210,7 @@ class LinearAttention(nn.Module):
         return self.to_out(out)
 
 class Attention(nn.Module):
-    #https://github.com/lucidrains/med-seg-diff-pytorch
+    # borrowed from https://github.com/lucidrains/med-seg-diff-pytorch
     def __init__(self, dim, heads = 4, dim_head = 32):
         super().__init__()
         self.scale = dim_head ** -0.5
@@ -232,7 +239,7 @@ class Attention(nn.Module):
         return self.to_out(out)
 
 class Transformer(nn.Module):
-    # https://github.com/lucidrains/med-seg-diff-pytorch
+    # borrowed from https://github.com/lucidrains/med-seg-diff-pytorch
     def __init__(
         self,
         dim,
@@ -257,7 +264,7 @@ class Transformer(nn.Module):
 # conditioning class
 
 class Conditioning(nn.Module):
-    # https://github.com/lucidrains/med-seg-diff-pytorch
+    # borrowed and modified from https://github.com/lucidrains/med-seg-diff-pytorch
     def __init__(self, fmap_size, dim):
         super().__init__()
         
@@ -274,7 +281,7 @@ class Conditioning(nn.Module):
 
 @beartype
 class Unet(nn.Module):
-    # https://github.com/lucidrains/med-seg-diff-pytorch
+    # borrowed and modified from https://github.com/lucidrains/med-seg-diff-pytorch
     def __init__(
         self,
         dim,
@@ -487,7 +494,7 @@ def cosine_beta_schedule(timesteps, s = 0.008):
     return torch.clip(betas, 0, 0.999)
 
 class Diffusion(nn.Module):
-    # https://github.com/lucidrains/med-seg-diff-pytorch
+    # borrowed and modified from https://github.com/lucidrains/med-seg-diff-pytorch
     def __init__(
         self,
         model,
